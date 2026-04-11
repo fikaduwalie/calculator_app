@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:math_expressions/math_expressions.dart';
 
 void main() {
   runApp(const MyApp());
@@ -7,115 +8,250 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      home: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HomePage extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage> {
+  String userInput = '';
+  String answer = '0';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final List<String> buttons = [
+    'C', '+/-', '%', 'DEL',
+    '7', '8', '9', '/',
+    '4', '5', '6', 'x',
+    '1', '2', '3', '-',
+    '0', '.', '=', '+',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text("Calculator"),
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      backgroundColor: Colors.grey[900],
+      body: Column(
+        children: [
+          // Display Area
+          Expanded(
+            flex: 2,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20,20,20,10),
+              color: Colors.grey[900],
+              alignment: Alignment.bottomRight,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    userInput,
+                    style: const TextStyle(fontSize: 24, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    answer,
+                    style: const TextStyle(
+                      fontSize: 48,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+
+          // Buttons
+          Expanded(
+            flex: 5,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              color: Colors.grey[900],
+              child: GridView.builder(
+                itemCount: buttons.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  childAspectRatio: 1.0,
+                ),
+                itemBuilder: (context, index) {
+                  final text = buttons[index];
+
+                  // Clear Button
+                  if (text == 'C') {
+                    return MyButton(
+                      buttonText: text,
+                      color: Colors.red[400],
+                      textColor: Colors.white,
+                      onTap: () {
+                        setState(() {
+                          userInput = '';
+                          answer = '0';
+                        });
+                      },
+                    );
+                  }
+
+                  // +/- Button
+                  if (text == '+/-') {
+                    return MyButton(
+                      buttonText: text,
+                      color: Colors.blue[50],
+                      textColor: Colors.black,
+                      onTap: () {
+                        setState(() {
+                          if (userInput.isNotEmpty && userInput != '0') {
+                            if (userInput.startsWith('-')) {
+                              userInput = userInput.substring(1);
+                            } else {
+                              userInput = '-$userInput';
+                            }
+                          }
+                        });
+                      },
+                    );
+                  }
+
+                  // % Button
+                  if (text == '%') {
+                    return MyButton(
+                      buttonText: text,
+                      color: Colors.blue[50],
+                      textColor: Colors.black,
+                      onTap: () {
+                        setState(() {
+                          if (userInput.isNotEmpty) {
+                            userInput += '%';
+                          }
+                        });
+                      },
+                    );
+                  }
+
+                  // Delete Button
+                  if (text == 'DEL') {
+                    return MyButton(
+                      buttonText: text,
+                      color: Colors.blue[50],
+                      textColor: Colors.black,
+                      onTap: () {
+                        setState(() {
+                          if (userInput.isNotEmpty) {
+                            userInput = userInput.substring(0, userInput.length - 1);
+                          }
+                        });
+                      },
+                    );
+                  }
+
+                  // Equal Button
+                  if (text == '=') {
+                    return MyButton(
+                      buttonText: text,
+                      color: Colors.orange[700],
+                      textColor: Colors.white,
+                      onTap: () => equalPressed(),
+                    );
+                  }
+
+                  // Other buttons
+                  return MyButton(
+                    buttonText: text,
+                    color: isOperator(text) ? Colors.blueAccent : Colors.white,
+                    textColor: isOperator(text) ? Colors.white : Colors.black,
+                    onTap: () {
+                      setState(() {
+                        userInput += text;
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+
+  bool isOperator(String x) {
+    return ['/', 'x', '-', '+', '='].contains(x);
+  }
+
+  void equalPressed() {
+    try {
+      String finalInput = userInput.replaceAll('x', '*');
+
+      // Handle percentage
+      finalInput = finalInput.replaceAll('%', '/100');
+
+      Parser p = Parser();
+      Expression exp = p.parse(finalInput);
+      ContextModel cm = ContextModel();
+
+      double eval = exp.evaluate(EvaluationType.REAL, cm);
+
+      setState(() {
+        answer = eval.toStringAsFixed(6).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+        // Keep the expression in userInput so user can see what they calculated
+      });
+    } catch (e) {
+      setState(() {
+        answer = 'Error';
+      });
+    }
+  }
+}
+
+// Button Widget
+class MyButton extends StatelessWidget {
+  final String buttonText;
+  final Color? color;
+  final Color? textColor;
+  final VoidCallback? onTap;
+
+  const MyButton({
+    super.key,
+    required this.buttonText,
+    this.color,
+    this.textColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            color: color ?? Colors.white,
+            child: Center(
+              child: Text(
+                buttonText,
+                style: TextStyle(
+                  color: textColor ?? Colors.black,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
